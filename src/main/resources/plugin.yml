@@ -1,0 +1,4 @@
+name: TNTObsidian
+main: com.dumptruckman.minecraft.tntobsidian.TNTObsidianPlugin
+version: 1.0
+author: dumptruckman

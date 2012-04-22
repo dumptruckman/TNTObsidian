@@ -1,0 +1,6 @@
+explosion_radius: 2
+obsidian_hits: 3
+ignored_blocks:
+- 7
+- 8
+- 9
