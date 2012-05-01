@@ -26,9 +26,11 @@ public class TNTObsidianPlugin extends JavaPlugin implements Listener {
     private static final String OBSIDIAN_HITS = "obsidian_hits";
     private static final int HITS_DEFAULT = 3;
     private static final String IGNORED_BLOCKS = "ignored_blocks";
+    private static final String CANNON_BLOCKS = "cannon_blocks";
 
     private File configFile;
-    private Set<Integer> ignoreSet = new HashSet<Integer>();;
+    private Set<Integer> ignoreSet = new HashSet<Integer>();
+    private Set<Integer> cannonSet = new HashSet<Integer>();
 
     private Map<Block, Integer> obsidianHealth = new HashMap<Block, Integer>();
 
@@ -46,6 +48,10 @@ public class TNTObsidianPlugin extends JavaPlugin implements Listener {
         if (ignoreList != null) {
             ignoreSet.addAll(ignoreList);
         }
+        List<Integer> cannonList = getConfig().getIntegerList(CANNON_BLOCKS);
+        if (cannonList != null) {
+            cannonSet.addAll(cannonList);
+        }
     }
 
     @EventHandler (priority = EventPriority.HIGHEST)
@@ -59,9 +65,19 @@ public class TNTObsidianPlugin extends JavaPlugin implements Listener {
         int radius = getConfig().getInt(RADIUS, RADIUS_DEFAULT);
 
         Block eventBlock = event.getLocation().getBlock();
-        for (int x = 0 - radius; x < radius; x++) {
-            for (int y = 0 - radius; y < radius; y++) {
-                for (int z = 0 - radius; z < radius; z++) {
+        boolean cannon = false;
+        if (eventBlock.getRelative(-1, 0, 0).getType() == Material.TNT
+                || eventBlock.getRelative(1, 0, 0).getType() == Material.TNT
+                || eventBlock.getRelative(0, -1, 0).getType() == Material.TNT
+                || eventBlock.getRelative(0, 1, 0).getType() == Material.TNT
+                || eventBlock.getRelative(0, 0, -1).getType() == Material.TNT
+                || eventBlock.getRelative(0, 0, 1).getType() == Material.TNT) {
+            cannon = true;
+        }
+
+        for (int x = 0 - radius; x <= radius; x++) {
+            for (int y = 0 - radius; y <= radius; y++) {
+                for (int z = 0 - radius; z <= radius; z++) {
                     Block block = eventBlock.getRelative(x, y, z);
                     if (block.getType() == Material.OBSIDIAN) {
                         if (getHits(block) >= max_hits) {
@@ -71,7 +87,13 @@ public class TNTObsidianPlugin extends JavaPlugin implements Listener {
                             addHit(block);
                         }
                     } else if (!ignoreSet.contains(block.getTypeId())) {
-                        event.blockList().add(block);
+                        if (cannon) {
+                            if (!cannonSet.contains(block.getTypeId())) {
+                                event.blockList().add(block);
+                            }
+                        } else {
+                            event.blockList().add(block);
+                        }
                     }
                 }
             }
